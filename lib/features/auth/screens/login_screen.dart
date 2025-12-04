@@ -7,7 +7,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -16,6 +16,42 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
+
+  void _handleLogin() async {
+    if (_isLoading) return;
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final error = await _authService.login(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (error == null) {
+      // Clear all old controllers to ensure fresh state for new user
+      await Get.deleteAll(force: true);
+
+      // Navigate to home
+      Get.offAllNamed(AppRoutes.home);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red[600],
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,57 +222,5 @@ class _LoginScreenState extends State<LoginScreen> {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
-  }
-
-  void _handleLogin() async {
-    // Prevent multiple rapid calls
-    if (_isLoading) return;
-    if (!_formKey.currentState!.validate()) return;
-
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      String? error = await _authService.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (error == null) {
-        // SUCCESS: Delete all old controllers to ensure fresh state
-        await Get.deleteAll(force: true);
-
-        // Navigate to home with clean state
-        Get.offAllNamed(AppRoutes.home);
-      } else {
-        // ERROR
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: ${e.toString()}')),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 }

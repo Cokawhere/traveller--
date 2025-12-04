@@ -144,25 +144,33 @@ class AuthService {
     }
   }
 
-  // Login
+  // ✅ LOGIN
   Future<String?> login({
     required String email,
     required String password,
   }) async {
     try {
-      await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+      final result = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
       );
-      return null; // Success
-    } on auth.FirebaseAuthException catch (e) {
-      // WORKAROUND: Sometimes Firebase throws reCAPTCHA errors but login succeeds
-      // Wait 500ms and check if user is actually logged in
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (_auth.currentUser != null) {
-        return null; // Login succeeded despite the error
+
+      if (result.user == null) {
+        return "Login failed. Try again.";
       }
 
+      return null; // Success
+    } on auth.FirebaseAuthException catch (e) {
+      // WORKAROUND: Firebase sometimes throws reCAPTCHA errors but login succeeds
+      // Wait and verify if user is actually logged in
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      if (_auth.currentUser != null) {
+        // Login actually succeeded despite the error
+        return null;
+      }
+
+      // Genuine error - handle it
       if (e.code == 'user-not-found') {
         return 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
@@ -170,21 +178,28 @@ class AuthService {
       } else if (e.code == 'invalid-credential') {
         return 'Invalid email or password.';
       } else {
-        return e.message ?? 'An error occurred during login.';
+        return e.message ?? 'Login error.';
       }
     } catch (e) {
       // Same workaround for generic errors
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 800));
+
       if (_auth.currentUser != null) {
         return null;
       }
-      return 'An unexpected error occurred.';
+
+      return 'Unexpected error occurred.';
     }
   }
 
   // Logout
   Future<void> logout() async {
     await _auth.signOut();
+  }
+
+  // ✅ CURRENT USER
+  auth.User? getCurrentUser() {
+    return _auth.currentUser;
   }
 
   // Get current user data from users collection
@@ -245,10 +260,6 @@ class AuthService {
     }
   }
 
-  auth.User? getCurrentUser() {
-    return _auth.currentUser;
-  }
-
   String _handleAuthException(auth.FirebaseAuthException e) {
     if (e.code == 'weak-password') {
       return 'The password provided is too weak.';
@@ -267,7 +278,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final AuthService authService = AuthService();
 
-    return FutureBuilder<UserModel?>(
+    return FutureBuilder(
       future: authService.getCurrentUserData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -275,7 +286,8 @@ class AuthWrapper extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        if (snapshot.hasData) {
+
+        if (snapshot.data != null) {
           return HomeScreen();
         } else {
           return const LoginScreen();
