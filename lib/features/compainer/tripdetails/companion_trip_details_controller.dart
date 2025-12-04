@@ -86,9 +86,7 @@ class CompanionTripDetailsController extends GetxController {
       }
 
       trip.value = tripData;
-    } catch (e) {
-      print('Error loading trip: $e');
-    }
+    } catch (e) {}
   }
 
   // Check if companion already sent a request
@@ -104,9 +102,7 @@ class CompanionTripDetailsController extends GetxController {
       );
 
       myRequest.value = existingRequest;
-    } catch (e) {
-      print('Error checking request: $e');
-    }
+    } catch (e) {}
   }
 
   // Send join request

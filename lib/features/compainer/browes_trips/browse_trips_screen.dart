@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'browse_trips_controller.dart';
 
 class BrowseTripsScreen extends StatelessWidget {
-  const BrowseTripsScreen({super.key});
+ const  BrowseTripsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

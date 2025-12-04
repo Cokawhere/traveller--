@@ -42,16 +42,16 @@ class TripService {
 
       return null;
     } catch (e) {
-      print('Error creating trip: $e');
       return 'Failed to create trip: ${e.toString()}';
     }
   }
 
   // Update trip (for editing)
-  Future<String?> updateTrip(String tripId, Map<String, dynamic> updateData) async {
+  Future<String?> updateTrip(
+      String tripId, Map<String, dynamic> updateData) async {
     try {
       final tripDoc = await _firestore.collection('trips').doc(tripId).get();
-      
+
       if (!tripDoc.exists) {
         return 'Trip not found';
       }
@@ -86,10 +86,9 @@ class TripService {
           .collection('requests')
           .where('status', isEqualTo: 'pending')
           .get();
-      
+
       return snapshot.docs.length;
     } catch (e) {
-      print('Error getting requests count: $e');
       return 0;
     }
   }
@@ -103,7 +102,7 @@ class TripService {
           .collection('requests')
           .orderBy('createdAt', descending: true)
           .get();
-      
+
       return snapshot.docs.map((doc) {
         return {
           ...doc.data(),
@@ -111,7 +110,27 @@ class TripService {
         };
       }).toList();
     } catch (e) {
-      print('Error getting trip requests: $e');
+      return [];
+    }
+  }
+
+  // Get all requests made by a companion (using collectionGroup)
+  Future<List<Map<String, dynamic>>> getCompanionRequests(
+      String companionId) async {
+    try {
+      final snapshot = await _firestore
+          .collectionGroup('requests')
+          .where('companionId', isEqualTo: companionId)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        return {
+          ...doc.data(),
+          'requestId': doc.id,
+          // 'tripId' is already in the document data
+        };
+      }).toList();
+    } catch (e) {
       return [];
     }
   }
@@ -125,16 +144,10 @@ class TripService {
           .orderBy('createdAt', descending: true)
           .get();
 
-      print('🔍 Found ${snapshot.docs.length} trips for traveler: $travelerId');
-      
-      return snapshot.docs
-          .map((doc) {
-            print('Trip data: ${doc.data()}');
-            return TripModel.fromFirestore(doc);
-          })
-          .toList();
+      return snapshot.docs.map((doc) {
+        return TripModel.fromFirestore(doc);
+      }).toList();
     } catch (e) {
-      print('❌ Error getting traveler trips: $e');
       return [];
     }
   }
@@ -143,13 +156,12 @@ class TripService {
   Future<TripModel?> getTripById(String tripId) async {
     try {
       final doc = await _firestore.collection('trips').doc(tripId).get();
-      
+
       if (doc.exists) {
         return TripModel.fromFirestore(doc);
       }
       return null;
     } catch (e) {
-      print('Error getting trip: $e');
       return null;
     }
   }
@@ -157,18 +169,24 @@ class TripService {
   // Get all approved trips (for companions to browse)
   Future<List<TripModel>> getApprovedTrips() async {
     try {
+      // DEBUG: Show ALL trips regardless of status
       final snapshot = await _firestore
           .collection('trips')
-          .where('status', isEqualTo: 'approved')
-          .where('time', isGreaterThan: DateTime.now().toIso8601String())
-          .orderBy('time', descending: false)
+          // .where('status', isEqualTo: 'approved') // DISABLED FOR DEBUGGING
           .get();
 
-      return snapshot.docs
+      final now = DateTime.now();
+
+      final trips = snapshot.docs
           .map((doc) => TripModel.fromFirestore(doc))
+          // .where((trip) => trip.time.isAfter(now)) // DISABLED FOR DEBUGGING
           .toList();
+
+      // Sort by time (upcoming first)
+      trips.sort((a, b) => a.time.compareTo(b.time));
+
+      return trips;
     } catch (e) {
-      print('Error getting approved trips: $e');
       return [];
     }
   }
@@ -182,11 +200,8 @@ class TripService {
           .orderBy('createdAt', descending: true)
           .get();
 
-      return snapshot.docs
-          .map((doc) => TripModel.fromFirestore(doc))
-          .toList();
+      return snapshot.docs.map((doc) => TripModel.fromFirestore(doc)).toList();
     } catch (e) {
-      print('Error getting pending trips: $e');
       return [];
     }
   }
@@ -246,7 +261,8 @@ class TripService {
 
       final tripData = tripDoc.data()!;
       final availableSeats = tripData['availableSeats'] as int;
-      final companions = List<Map<String, dynamic>>.from(tripData['companions'] ?? []);
+      final companions =
+          List<Map<String, dynamic>>.from(tripData['companions'] ?? []);
       final totalBooked = tripData['totalSeatsBooked'] as int? ?? 0;
 
       if (totalBooked >= availableSeats) {
@@ -409,9 +425,8 @@ class TripService {
         .where('travelerId', isEqualTo: travelerId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TripModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => TripModel.fromFirestore(doc)).toList());
   }
 
   // Stream approved trips
@@ -422,9 +437,8 @@ class TripService {
         .where('time', isGreaterThan: DateTime.now().toIso8601String())
         .orderBy('time', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TripModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => TripModel.fromFirestore(doc)).toList());
   }
 
   // Delete trip
@@ -460,7 +474,7 @@ class TripService {
   Future<Map<String, double>?> getTripLocation(String tripId) async {
     try {
       final doc = await _firestore.collection('trips').doc(tripId).get();
-      
+
       if (doc.exists) {
         final data = doc.data();
         if (data?['currentLat'] != null && data?['currentLng'] != null) {
@@ -472,8 +486,17 @@ class TripService {
       }
       return null;
     } catch (e) {
-      print('Error getting trip location: $e');
       return null;
+    }
+  }
+
+  // DEBUG: Get all trips to check status
+  Future<List<TripModel>> getAllTripsDebug() async {
+    try {
+      final snapshot = await _firestore.collection('trips').get();
+      return snapshot.docs.map((doc) => TripModel.fromFirestore(doc)).toList();
+    } catch (e) {
+      return [];
     }
   }
 }

@@ -238,7 +238,7 @@ class ShareLocationScreen extends StatelessWidget {
                           ? const SizedBox(
                               width: 18,
                               height: 18,
-                              child: const Center(
+                              child: Center(
                                   child: CircularProgressIndicator(
                                       color: Colors.blue)),
                             )

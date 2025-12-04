@@ -30,6 +30,12 @@ class HomeController extends GetxController {
       final user = await _homeService.getCurrentUserData();
 
       if (user == null) {
+        // Check if user is actually authenticated but profile fetch failed
+        if (_homeService.isUserAuthenticated()) {
+          errorMessage.value = 'Failed to load user profile. Please retry.';
+          return;
+        }
+
         Get.offAllNamed(AppRoutes.login);
         return;
       }
@@ -66,9 +72,7 @@ class HomeController extends GetxController {
             .getCompanionAcceptedRequestsCount(currentUser.value!.uid);
         acceptedRequestsCount.value = count;
       }
-    } catch (e) {
-      print('Error loading requests count: $e');
-    }
+    } catch (e) {}
   }
 
   // Refresh requests count

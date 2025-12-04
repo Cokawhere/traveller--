@@ -1,4 +1,3 @@
-// lib/screens/browse_trips_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:traveller/models/trip_model.dart';
@@ -19,26 +18,32 @@ class BrowseTripsController extends GetxController {
     super.onInit();
     loadTrips();
 
-    // Listen to search and filter changes
-    ever(searchQuery, (_) => _applyFilters());
-    ever(selectedFilter, (_) => _applyFilters());
+    // FIX: use debounce instead of ever
+    debounce(searchQuery, (_) => _applyFilters(),
+        time: const Duration(milliseconds: 300));
+    debounce(selectedFilter, (_) => _applyFilters(),
+        time: const Duration(milliseconds: 100));
   }
 
-  // Load all approved trips
   Future<void> loadTrips() async {
     try {
       isLoading.value = true;
 
+      // DEBUG: Check all trips in DB
+      final allDocs = await _tripService.getAllTripsDebug();
+
+      for (var doc in allDocs) {}
+
       final trips = await _tripService.getApprovedTrips();
-      
+
       allTrips.value = trips;
       _applyFilters();
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to load trips: ${e.toString()}',
+        'Failed to load trips: $e',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[600],
+        backgroundColor: Colors.red,
         colorText: Colors.white,
       );
     } finally {
@@ -46,59 +51,31 @@ class BrowseTripsController extends GetxController {
     }
   }
 
-  // Apply filters and search
   void _applyFilters() {
     List<TripModel> result = List.from(allTrips);
 
-    // Apply search filter
-    if (searchQuery.value.isNotEmpty) {
-      final query = searchQuery.value.toLowerCase();
+    final q = searchQuery.value.toLowerCase();
+
+    if (q.isNotEmpty) {
       result = result.where((trip) {
-        return trip.origin.toLowerCase().contains(query) ||
-            trip.destination.toLowerCase().contains(query) ||
-            trip.travelerName.toLowerCase().contains(query);
+        return trip.origin.toLowerCase().contains(q) ||
+            trip.destination.toLowerCase().contains(q) ||
+            trip.travelerName.toLowerCase().contains(q);
       }).toList();
     }
 
-    // Apply time filter
     final now = DateTime.now();
-    switch (selectedFilter.value) {
-      case 'upcoming':
-        result = result.where((trip) => trip.time.isAfter(now)).toList();
-        break;
-      case 'past':
-        result = result.where((trip) => trip.time.isBefore(now)).toList();
-        break;
-      case 'all':
-      default:
-        // Show all
-        break;
+    if (selectedFilter.value == 'upcoming') {
+      result = result.where((trip) => trip.time.isAfter(now)).toList();
+    } else if (selectedFilter.value == 'past') {
+      result = result.where((trip) => trip.time.isBefore(now)).toList();
     }
 
-    // Sort by time (upcoming first)
     result.sort((a, b) => a.time.compareTo(b.time));
-
     filteredTrips.value = result;
   }
 
-  // View trip details
   void viewTripDetails(TripModel trip) {
-    Get.toNamed(
-      '/compainer-trip-details',
-      arguments: trip.tripId,
-    );
-  }
-
-  // Get trips count
-  Map<String, int> getTripsCount() {
-    final now = DateTime.now();
-    int upcoming = allTrips.where((trip) => trip.time.isAfter(now)).length;
-    int past = allTrips.where((trip) => trip.time.isBefore(now)).length;
-
-    return {
-      'all': allTrips.length,
-      'upcoming': upcoming,
-      'past': past,
-    };
+    Get.toNamed('/compainer-trip-details', arguments: trip.tripId);
   }
 }

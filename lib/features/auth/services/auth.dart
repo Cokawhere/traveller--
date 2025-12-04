@@ -5,7 +5,6 @@ import 'package:traveller/models/user_model.dart';
 import '../../home/screens/home_screenn.dart';
 import '../screens/login_screen.dart';
 
-
 class AuthService {
   final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -17,7 +16,8 @@ class AuthService {
     required String phone,
   }) async {
     try {
-      auth.UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      auth.UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -58,13 +58,17 @@ class AuthService {
     required String carModel,
   }) async {
     try {
-      auth.UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      auth.UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       // Create traveler document
-      await _firestore.collection('travelers').doc(userCredential.user!.uid).set({
+      await _firestore
+          .collection('travelers')
+          .doc(userCredential.user!.uid)
+          .set({
         'travelerId': userCredential.user!.uid,
         'name': name,
         'email': email,
@@ -86,7 +90,7 @@ class AuthService {
       });
 
       await userCredential.user!.updateDisplayName(name);
-      return null; 
+      return null;
     } on auth.FirebaseAuthException catch (e) {
       return _handleAuthException(e);
     } catch (e) {
@@ -103,13 +107,17 @@ class AuthService {
     required String socialMedia,
   }) async {
     try {
-      auth.UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      auth.UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       // Create companier document
-      await _firestore.collection('companiers').doc(userCredential.user!.uid).set({
+      await _firestore
+          .collection('companiers')
+          .doc(userCredential.user!.uid)
+          .set({
         'userId': userCredential.user!.uid,
         'name': name,
         'email': email,
@@ -148,14 +156,28 @@ class AuthService {
       );
       return null; // Success
     } on auth.FirebaseAuthException catch (e) {
+      // WORKAROUND: Sometimes Firebase throws reCAPTCHA errors but login succeeds
+      // Wait 500ms and check if user is actually logged in
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (_auth.currentUser != null) {
+        return null; // Login succeeded despite the error
+      }
+
       if (e.code == 'user-not-found') {
         return 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
         return 'Wrong password provided.';
+      } else if (e.code == 'invalid-credential') {
+        return 'Invalid email or password.';
       } else {
         return e.message ?? 'An error occurred during login.';
       }
     } catch (e) {
+      // Same workaround for generic errors
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (_auth.currentUser != null) {
+        return null;
+      }
       return 'An unexpected error occurred.';
     }
   }
@@ -171,8 +193,9 @@ class AuthService {
       auth.User? user = _auth.currentUser;
       if (user == null) return null;
 
-      DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
-      
+      DocumentSnapshot doc =
+          await _firestore.collection('users').doc(user.uid).get();
+
       if (doc.exists) {
         return UserModel.fromMap(doc.data() as Map<String, dynamic>);
       }
@@ -188,7 +211,8 @@ class AuthService {
       auth.User? user = _auth.currentUser;
       if (user == null) return null;
 
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(user.uid).get();
       if (!userDoc.exists) return null;
 
       String role = (userDoc.data() as Map<String, dynamic>)['role'];
@@ -197,13 +221,16 @@ class AuthService {
       DocumentSnapshot detailedDoc;
       switch (role) {
         case 'admin':
-          detailedDoc = await _firestore.collection('admins').doc(user.uid).get();
+          detailedDoc =
+              await _firestore.collection('admins').doc(user.uid).get();
           break;
         case 'traveler':
-          detailedDoc = await _firestore.collection('travelers').doc(user.uid).get();
+          detailedDoc =
+              await _firestore.collection('travelers').doc(user.uid).get();
           break;
         case 'companier':
-          detailedDoc = await _firestore.collection('companiers').doc(user.uid).get();
+          detailedDoc =
+              await _firestore.collection('companiers').doc(user.uid).get();
           break;
         default:
           return null;
@@ -214,7 +241,6 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      print('Error getting detailed user data: $e');
       return null;
     }
   }
@@ -233,8 +259,6 @@ class AuthService {
     }
   }
 }
-
-
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});

@@ -37,7 +37,6 @@ class EvaluationService {
 
       return null;
     } catch (e) {
-      print('Error creating evaluation: $e');
       return 'Failed to submit evaluation: ${e.toString()}';
     }
   }
@@ -54,7 +53,6 @@ class EvaluationService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      print('Error getting trip evaluations: $e');
       return [];
     }
   }
@@ -64,7 +62,7 @@ class EvaluationService {
     try {
       // Get all trips
       final tripsSnapshot = await _firestore.collection('trips').get();
-      
+
       List<Map<String, dynamic>> allEvaluations = [];
 
       // Get evaluations from each trip
@@ -96,7 +94,6 @@ class EvaluationService {
 
       return allEvaluations;
     } catch (e) {
-      print('Error getting user evaluations: $e');
       return [];
     }
   }
@@ -116,7 +113,6 @@ class EvaluationService {
 
       return snapshot.docs.isNotEmpty;
     } catch (e) {
-      print('Error checking evaluation: $e');
       return false;
     }
   }
@@ -125,7 +121,7 @@ class EvaluationService {
   Future<double> getUserAverageRating(String userId) async {
     try {
       final evaluations = await getUserEvaluations(userId);
-      
+
       if (evaluations.isEmpty) return 0.0;
 
       double total = 0;
@@ -135,7 +131,6 @@ class EvaluationService {
 
       return total / evaluations.length;
     } catch (e) {
-      print('Error calculating average rating: $e');
       return 0.0;
     }
   }

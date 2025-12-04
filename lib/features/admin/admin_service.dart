@@ -7,36 +7,39 @@ class AdminService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // ============= USER MANAGEMENT =============
-  
+
   // Get all users
   Future<List<Map<String, dynamic>>> getAllUsers() async {
     try {
       final usersSnapshot = await _firestore.collection('users').get();
-      
+
       List<Map<String, dynamic>> allUsers = [];
 
       for (var userDoc in usersSnapshot.docs) {
         final userData = userDoc.data();
         final role = userData['role'];
-        
+
         // Get detailed info based on role
         Map<String, dynamic> detailedData = {};
-        
+
         switch (role) {
           case 'admin':
-            final adminDoc = await _firestore.collection('admins').doc(userDoc.id).get();
+            final adminDoc =
+                await _firestore.collection('admins').doc(userDoc.id).get();
             detailedData = adminDoc.exists ? adminDoc.data()! : {};
             break;
           case 'traveler':
-            final travelerDoc = await _firestore.collection('travelers').doc(userDoc.id).get();
+            final travelerDoc =
+                await _firestore.collection('travelers').doc(userDoc.id).get();
             detailedData = travelerDoc.exists ? travelerDoc.data()! : {};
             break;
           case 'companier':
-            final companierDoc = await _firestore.collection('companiers').doc(userDoc.id).get();
+            final companierDoc =
+                await _firestore.collection('companiers').doc(userDoc.id).get();
             detailedData = companierDoc.exists ? companierDoc.data()! : {};
             break;
         }
-        
+
         allUsers.add({
           ...userData,
           ...detailedData,
@@ -46,7 +49,6 @@ class AdminService {
 
       return allUsers;
     } catch (e) {
-      print('Error getting all users: $e');
       return [];
     }
   }
@@ -63,18 +65,21 @@ class AdminService {
 
       for (var doc in snapshot.docs) {
         final userData = doc.data();
-        
+
         // Get detailed info
         DocumentSnapshot detailedDoc;
         switch (role) {
           case 'admin':
-            detailedDoc = await _firestore.collection('admins').doc(doc.id).get();
+            detailedDoc =
+                await _firestore.collection('admins').doc(doc.id).get();
             break;
           case 'traveler':
-            detailedDoc = await _firestore.collection('travelers').doc(doc.id).get();
+            detailedDoc =
+                await _firestore.collection('travelers').doc(doc.id).get();
             break;
           case 'companier':
-            detailedDoc = await _firestore.collection('companiers').doc(doc.id).get();
+            detailedDoc =
+                await _firestore.collection('companiers').doc(doc.id).get();
             break;
           default:
             continue;
@@ -90,7 +95,6 @@ class AdminService {
 
       return users;
     } catch (e) {
-      print('Error getting users by role: $e');
       return [];
     }
   }
@@ -121,7 +125,7 @@ class AdminService {
   }
 
   // ============= REPORTS MANAGEMENT =============
-  
+
   // Get all reports
   Future<List<ReportModel>> getAllReports() async {
     try {
@@ -134,7 +138,6 @@ class AdminService {
           .map((doc) => ReportModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print('Error getting all reports: $e');
       return [];
     }
   }
@@ -152,13 +155,13 @@ class AdminService {
           .map((doc) => ReportModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print('Error getting reports by status: $e');
       return [];
     }
   }
 
   // Update report status
-  Future<String?> updateReportStatus(String reportId, String status, {String? note}) async {
+  Future<String?> updateReportStatus(String reportId, String status,
+      {String? note}) async {
     try {
       final updateData = {
         'status': status,
@@ -188,7 +191,7 @@ class AdminService {
   }
 
   // ============= TRIPS MANAGEMENT =============
-  
+
   // Get all trips
   Future<List<TripModel>> getAllTrips() async {
     try {
@@ -197,11 +200,8 @@ class AdminService {
           .orderBy('createdAt', descending: true)
           .get();
 
-      return snapshot.docs
-          .map((doc) => TripModel.fromFirestore(doc))
-          .toList();
+      return snapshot.docs.map((doc) => TripModel.fromFirestore(doc)).toList();
     } catch (e) {
-      print('Error getting all trips: $e');
       return [];
     }
   }
@@ -215,11 +215,8 @@ class AdminService {
           .orderBy('createdAt', descending: true)
           .get();
 
-      return snapshot.docs
-          .map((doc) => TripModel.fromFirestore(doc))
-          .toList();
+      return snapshot.docs.map((doc) => TripModel.fromFirestore(doc)).toList();
     } catch (e) {
-      print('Error getting trips by status: $e');
       return [];
     }
   }
@@ -253,9 +250,8 @@ class AdminService {
           .orderBy('createdAt', descending: true)
           .get();
 
-      final evaluations = evaluationsSnapshot.docs
-          .map((doc) => doc.data())
-          .toList();
+      final evaluations =
+          evaluationsSnapshot.docs.map((doc) => doc.data()).toList();
 
       // Get traveler info
       final travelerDoc = await _firestore
@@ -270,12 +266,14 @@ class AdminService {
         'requests': requests,
         'evaluations': evaluations,
         'travelerInfo': travelerInfo,
-        'pendingRequestsCount': requests.where((r) => r['status'] == 'pending').length,
-        'acceptedRequestsCount': requests.where((r) => r['status'] == 'accepted').length,
-        'rejectedRequestsCount': requests.where((r) => r['status'] == 'rejected').length,
+        'pendingRequestsCount':
+            requests.where((r) => r['status'] == 'pending').length,
+        'acceptedRequestsCount':
+            requests.where((r) => r['status'] == 'accepted').length,
+        'rejectedRequestsCount':
+            requests.where((r) => r['status'] == 'rejected').length,
       };
     } catch (e) {
-      print('Error getting trip full details: $e');
       return null;
     }
   }
@@ -296,7 +294,8 @@ class AdminService {
   }
 
   // Reject trip
-  Future<String?> rejectTrip(String tripId, String adminId, {String? reason}) async {
+  Future<String?> rejectTrip(String tripId, String adminId,
+      {String? reason}) async {
     try {
       final updateData = {
         'status': 'rejected',
@@ -321,7 +320,7 @@ class AdminService {
     try {
       // Delete trip and all subcollections
       await _firestore.collection('trips').doc(tripId).delete();
-      
+
       return null;
     } catch (e) {
       return 'Failed to delete trip: ${e.toString()}';
@@ -329,26 +328,42 @@ class AdminService {
   }
 
   // ============= STATISTICS =============
-  
+
   // Get admin dashboard statistics
   Future<Map<String, dynamic>> getDashboardStats() async {
     try {
       // Users count
       final usersSnapshot = await _firestore.collection('users').get();
-      final travelersCount = usersSnapshot.docs.where((doc) => doc.data()['role'] == 'traveler').length;
-      final companiersCount = usersSnapshot.docs.where((doc) => doc.data()['role'] == 'companier').length;
-      final adminsCount = usersSnapshot.docs.where((doc) => doc.data()['role'] == 'admin').length;
+      final travelersCount = usersSnapshot.docs
+          .where((doc) => doc.data()['role'] == 'traveler')
+          .length;
+      final companiersCount = usersSnapshot.docs
+          .where((doc) => doc.data()['role'] == 'companier')
+          .length;
+      final adminsCount = usersSnapshot.docs
+          .where((doc) => doc.data()['role'] == 'admin')
+          .length;
 
       // Trips count
       final tripsSnapshot = await _firestore.collection('trips').get();
-      final pendingTrips = tripsSnapshot.docs.where((doc) => doc.data()['status'] == 'pending_approval').length;
-      final approvedTrips = tripsSnapshot.docs.where((doc) => doc.data()['status'] == 'approved').length;
-      final completedTrips = tripsSnapshot.docs.where((doc) => doc.data()['status'] == 'completed').length;
+      final pendingTrips = tripsSnapshot.docs
+          .where((doc) => doc.data()['status'] == 'pending_approval')
+          .length;
+      final approvedTrips = tripsSnapshot.docs
+          .where((doc) => doc.data()['status'] == 'approved')
+          .length;
+      final completedTrips = tripsSnapshot.docs
+          .where((doc) => doc.data()['status'] == 'completed')
+          .length;
 
       // Reports count
       final reportsSnapshot = await _firestore.collection('reports').get();
-      final pendingReports = reportsSnapshot.docs.where((doc) => doc.data()['status'] == 'pending').length;
-      final resolvedReports = reportsSnapshot.docs.where((doc) => doc.data()['status'] == 'resolved').length;
+      final pendingReports = reportsSnapshot.docs
+          .where((doc) => doc.data()['status'] == 'pending')
+          .length;
+      final resolvedReports = reportsSnapshot.docs
+          .where((doc) => doc.data()['status'] == 'resolved')
+          .length;
 
       return {
         'users': {
@@ -370,7 +385,6 @@ class AdminService {
         },
       };
     } catch (e) {
-      print('Error getting dashboard stats: $e');
       return {};
     }
   }

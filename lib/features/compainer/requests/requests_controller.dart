@@ -71,21 +71,17 @@ class CompanionMyRequestsController extends GetxController {
     if (userId == null) return;
 
     try {
-      // Get all approved trips
-      final trips = await _tripService.getApprovedTrips();
+      // 1. Get all requests made by this companion
+      final myRequests = await _tripService.getCompanionRequests(userId!);
 
       List<Map<String, dynamic>> requestsList = [];
 
-      // Get requests for each trip where companionId matches
-      for (var trip in trips) {
-        final tripRequests = await _tripService.getTripRequests(trip.tripId);
+      // 2. For each request, fetch the trip details
+      for (var request in myRequests) {
+        final tripId = request['tripId'];
+        final trip = await _tripService.getTripById(tripId);
 
-        // Filter only this companion's requests
-        final myRequests =
-            tripRequests.where((req) => req['companionId'] == userId).toList();
-
-        // Add trip data to each request
-        for (var request in myRequests) {
+        if (trip != null) {
           request['tripData'] = {
             'origin': trip.origin,
             'destination': trip.destination,
@@ -107,9 +103,7 @@ class CompanionMyRequestsController extends GetxController {
 
       allRequests.value = requestsList;
       _applyFilters();
-    } catch (e) {
-      print('Error loading requests: $e');
-    }
+    } catch (e) {}
   }
 
   // Apply filters

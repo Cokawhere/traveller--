@@ -127,7 +127,8 @@ class _EvaluationDialogState extends State<EvaluationDialog> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.orange[600]!, width: 2),
+                    borderSide:
+                        BorderSide(color: Colors.orange[600]!, width: 2),
                   ),
                   filled: true,
                   fillColor: Colors.grey[50],
@@ -214,9 +215,24 @@ class _EvaluationDialogState extends State<EvaluationDialog> {
 
     try {
       await widget.onSubmit(_rating, _commentController.text.trim());
-      Get.back();
+      // Close dialog first, then the callback will show its own snackbar
+      if (mounted) {
+        Get.back();
+      }
     } catch (e) {
-      setState(() => _isSubmitting = false);
+      // If there's an error, reset the loading state and close dialog
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        Get.back();
+      }
+      // Show error snackbar
+      Get.snackbar(
+        'Error',
+        'Failed to submit evaluation: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[600],
+        colorText: Colors.white,
+      );
     }
   }
 

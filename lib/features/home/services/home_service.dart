@@ -21,7 +21,6 @@ class HomeService {
       }
       return null;
     } catch (e) {
-      print('Error getting user data: $e');
       return null;
     }
   }
@@ -61,7 +60,6 @@ class HomeService {
       }
       return null;
     } catch (e) {
-      print('Error getting detailed user data: $e');
       return null;
     }
   }
@@ -76,7 +74,6 @@ class HomeService {
     try {
       await _auth.signOut();
     } catch (e) {
-      print('Error logging out: $e');
       rethrow;
     }
   }
@@ -111,7 +108,6 @@ class HomeService {
 
       return totalPending;
     } catch (e) {
-      print('Error getting traveler pending requests count: $e');
       return 0;
     }
   }
@@ -142,7 +138,6 @@ class HomeService {
 
       return acceptedCount;
     } catch (e) {
-      print('Error getting companion accepted requests count: $e');
       return 0;
     }
   }
@@ -184,10 +179,8 @@ class HomeService {
         int pendingCount = 0;
         for (var request in requestsSnapshot.docs) {
           String tripId = request.data()['tripId'];
-          var tripDoc =
-              await _firestore.collection('trips').doc(tripId).get();
-          if (tripDoc.exists &&
-              tripDoc.data()?['travelerId'] == userId) {
+          var tripDoc = await _firestore.collection('trips').doc(tripId).get();
+          if (tripDoc.exists && tripDoc.data()?['travelerId'] == userId) {
             pendingCount++;
           }
         }
@@ -214,7 +207,6 @@ class HomeService {
 
       return stats;
     } catch (e) {
-      print('Error getting user statistics: $e');
       return {
         'totalTrips': 0,
         'activeTrips': 0,

@@ -189,28 +189,49 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleLogin() async {
+    // Prevent multiple rapid calls
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
 
-    String? error = await _authService.login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
+    try {
+      String? error = await _authService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
-    setState(() {
-      _isLoading = false;
-    });
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(error!),
-        backgroundColor: Colors.red[600],
-      ),
-    );
+      if (error == null) {
+        // SUCCESS: Delete all old controllers to ensure fresh state
+        await Get.deleteAll(force: true);
+
+        // Navigate to home with clean state
+        Get.offAllNamed(AppRoutes.home);
+      } else {
+        // ERROR
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: ${e.toString()}')),
+      );
     }
+  }
 
   @override
   void dispose() {

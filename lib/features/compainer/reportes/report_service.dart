@@ -33,7 +33,6 @@ class ReportService {
 
       return null;
     } catch (e) {
-      print('Error creating report: $e');
       return 'Failed to submit report: ${e.toString()}';
     }
   }
@@ -50,7 +49,6 @@ class ReportService {
           .map((doc) => ReportModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print('Error getting reports: $e');
       return [];
     }
   }
@@ -68,7 +66,6 @@ class ReportService {
           .map((doc) => ReportModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print('Error getting pending reports: $e');
       return [];
     }
   }
@@ -100,7 +97,6 @@ class ReportService {
           .map((doc) => ReportModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print('Error getting companion reports: $e');
       return [];
     }
   }

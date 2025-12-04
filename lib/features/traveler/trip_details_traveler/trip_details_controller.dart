@@ -67,8 +67,6 @@ class TripDetailsController extends GetxController {
       isLoadingRequests.value = true;
       final loadedRequests = await _tripService.getTripRequests(tripId);
       requests.value = loadedRequests;
-    } catch (e) {
-      print('Error loading requests: $e');
     } finally {
       isLoadingRequests.value = false;
     }
@@ -81,8 +79,8 @@ class TripDetailsController extends GetxController {
       final loadedEvaluations =
           await _evaluationService.getTripEvaluations(tripId);
       evaluations.value = loadedEvaluations;
+    // ignore: empty_catches
     } catch (e) {
-      print('Error loading evaluations: $e');
     } finally {
       isLoadingEvaluations.value = false;
     }

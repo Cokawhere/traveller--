@@ -98,9 +98,7 @@ class MyRequestsController extends GetxController {
 
       allRequests.value = requestsList;
       _applyFilters();
-    } catch (e) {
-      print('Error loading requests: $e');
-    }
+    } catch (e) {}
   }
 
   // Apply filters
@@ -116,7 +114,8 @@ class MyRequestsController extends GetxController {
   }
 
   // Approve request
-  Future<void> approveRequest(String requestId, String tripId, String companionName) async {
+  Future<void> approveRequest(
+      String requestId, String tripId, String companionName) async {
     try {
       Get.dialog(
         const Center(child: CircularProgressIndicator(color: Colors.blue)),
@@ -163,7 +162,8 @@ class MyRequestsController extends GetxController {
   }
 
   // Reject request
-  Future<void> rejectRequest(String requestId, String tripId, String companionName) async {
+  Future<void> rejectRequest(
+      String requestId, String tripId, String companionName) async {
     try {
       Get.dialog(
         const Center(child: CircularProgressIndicator(color: Colors.blue)),
