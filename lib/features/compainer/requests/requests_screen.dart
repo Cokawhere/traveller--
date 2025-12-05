@@ -409,22 +409,15 @@ class CompanionMyRequestsScreen extends StatelessWidget {
   }
 
 // ⭐ Add this method to show evaluation dialog
-  void _showEvaluationDialog(Map<String, dynamic> request) {
-    showEvaluationDialog(
-      tripId: request['tripId'],
-      travelerId: request['tripData']['travelerId'],
-      travelerName: request['tripData']['travelerName'],
-      onSubmit: (rating, comment) async {
-        await controller.submitEvaluation(
-          tripId: request['tripId'],
-          travelerId: request['tripData']['travelerId'],
-          travelerName: request['tripData']['travelerName'],
-          rating: rating,
-          comment: comment,
-        );
-      },
-    );
-  }
+ void _showEvaluationDialog(Map<String, dynamic> request) {
+  showEvaluationDialog(
+    tripId: request['tripId'],
+    travelerId: request['tripData']['travelerId'],
+    travelerName: request['tripData']['travelerName'],
+    evaluatorId: controller.userId.toString(),   // لازم يكون عندك الcurrent user ID
+    evaluatorName: controller.userName.toString(), // نفس الشيء
+  );
+}
 
   Color _getStatusColor(String status) {
     switch (status) {

@@ -6,7 +6,7 @@ import 'package:traveller/enums/trip_enum.dart';
 import 'trip_details_controller.dart';
 
 class TravelerTripDetailsScreen extends StatelessWidget {
-    TravelerTripDetailsScreen({super.key});
+     TravelerTripDetailsScreen({super.key});
 
   late final TripDetailsController controller;
 

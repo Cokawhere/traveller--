@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'companion_trip_details_controller.dart';
 
 class CompanionTripDetailsScreen extends StatelessWidget {
-   CompanionTripDetailsScreen({super.key});
+    CompanionTripDetailsScreen({super.key});
 
   late final CompanionTripDetailsController controller;
 

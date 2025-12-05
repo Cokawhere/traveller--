@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 import 'package:traveller/enums/user_enum.dart';
 import 'package:traveller/models/user_model.dart';
 import 'package:traveller/routes.dart';
@@ -128,14 +129,14 @@ class HomeController extends GetxController {
   }
 
   // Get role icon code
-  int getRoleIconCode(UserRole role) {
+  IconData getRoleIconCode(UserRole role) {
     switch (role) {
       case UserRole.admin:
-        return 0xe047;
+        return const IconData(0xe047, fontFamily: 'MaterialIcons');
       case UserRole.traveler:
-        return 0xe071;
+        return const IconData(0xe071, fontFamily: 'MaterialIcons');
       case UserRole.companier:
-        return 0xe0af;
+        return const IconData(0xe0af, fontFamily: 'MaterialIcons');
     }
   }
 
@@ -172,21 +173,21 @@ class HomeController extends GetxController {
         items = [
           {
             'title': 'Users Management',
-            'icon': 0xe7ef,
+            'icon': const IconData(0xe7ef, fontFamily: 'MaterialIcons'),
             'color': 0xFFE53935,
             'route': '/user-management',
             'badge': null,
           },
           {
             'title': 'Reports Management',
-            'icon': 0xe037,
+            'icon': const IconData(0xe037, fontFamily: 'MaterialIcons'),
             'color': 0xFF8E24AA,
             'route': '/report-management',
             'badge': null,
           },
           {
             'title': 'View All Trips',
-            'icon': 0xe6dd,
+            'icon': const IconData(0xe6dd, fontFamily: 'MaterialIcons'),
             'color': 0xFFEF5350,
             'route': '/trip-management',
             'badge': null,
@@ -198,21 +199,21 @@ class HomeController extends GetxController {
         items = [
           {
             'title': 'My Trips',
-            'icon': 0xe071,
+            'icon': const IconData(0xe071, fontFamily: 'MaterialIcons'),
             'color': 0xFF43A047,
             'route': AppRoutes.myTrips,
             'badge': null,
           },
           {
             'title': 'Create Trip',
-            'icon': 0xe055,
+            'icon': const IconData(0xe055, fontFamily: 'MaterialIcons'),
             'color': 0xFF00897B,
             'route': AppRoutes.createTrip,
             'badge': null,
           },
           {
             'title': 'Requests',
-            'icon': 0xe3ee,
+            'icon': const IconData(0xe3ee, fontFamily: 'MaterialIcons'),
             'color': 0xFF1E88E5,
             'route': AppRoutes.travelerRequests,
             'badge': pendingRequestsCount.value > 0
@@ -221,7 +222,7 @@ class HomeController extends GetxController {
           },
           {
             'title': 'Share Location',
-            'icon': 0xe55c,
+            'icon': const IconData(0xe55c, fontFamily: 'MaterialIcons'),
             'color': 0xFFE53935,
             'route': AppRoutes.shareLocation,
             'badge': null,
@@ -233,14 +234,14 @@ class HomeController extends GetxController {
         items = [
           {
             'title': 'Browse Trips',
-            'icon': 0xe8b6,
+            'icon': const IconData(0xe8b6, fontFamily: 'MaterialIcons'),
             'color': 0xFF00897B,
             'route': AppRoutes.browseTrips,
             'badge': null,
           },
           {
             'title': 'My Requests',
-            'icon': 0xe3ee,
+            'icon': const IconData(0xe3ee, fontFamily: 'MaterialIcons'),
             'color': 0xFFFB8C00,
             'route': AppRoutes.compainerRequests,
             'badge': acceptedRequestsCount.value > 0

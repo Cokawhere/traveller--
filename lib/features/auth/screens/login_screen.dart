@@ -24,26 +24,44 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     final error = await _authService.login(
-      email: _emailController.text,
+      email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
-    setState(() => _isLoading = false);
-
     if (error == null) {
-      // Clear all old controllers to ensure fresh state for new user
-      await Get.deleteAll(force: true);
+      // ✅ تحقق من وجود بيانات اليوزر في Firestore
+      final userData = await _authService.getCurrentUserData();
 
-      // Navigate to home
+      if (userData == null) {
+        // لو مفيش بيانات → يعني فيه مشكلة في الحساب
+        await _authService.logout(); // نطلعه بره
+        Get.snackbar(
+          "خطأ في الحساب",
+          "بيانات حسابك ناقصة أو تالفة، من فضلك سجل دخول بحساب آخر أو أعد التسجيل.",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 5),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // كل حاجة تمام → ندخله
+      await Get.deleteAll(force: true);
       Get.offAllNamed(AppRoutes.home);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          backgroundColor: Colors.red[600],
-        ),
+      // خطأ في الإيميل أو الباسورد
+      Get.snackbar(
+        "فشل تسجيل الدخول",
+        error,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
       );
     }
+
+    setState(() => _isLoading = false);
   }
 
   @override

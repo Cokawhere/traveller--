@@ -1,11 +1,13 @@
-// lib/widgets/evaluation_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:traveller/features/compainer/evaluation/evaluation_service.dart';
 
 class EvaluationDialog extends StatefulWidget {
   final String tripId;
   final String travelerId;
   final String travelerName;
+  final String evaluatorId;
+  final String evaluatorName;
   final Function(double rating, String comment) onSubmit;
 
   const EvaluationDialog({
@@ -13,6 +15,8 @@ class EvaluationDialog extends StatefulWidget {
     required this.tripId,
     required this.travelerId,
     required this.travelerName,
+    required this.evaluatorId,
+    required this.evaluatorName,
     required this.onSubmit,
   });
 
@@ -42,7 +46,6 @@ class _EvaluationDialogState extends State<EvaluationDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header Icon
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -56,8 +59,6 @@ class _EvaluationDialogState extends State<EvaluationDialog> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Title
               Text(
                 'Rate Your Trip',
                 style: TextStyle(
@@ -75,10 +76,7 @@ class _EvaluationDialogState extends State<EvaluationDialog> {
                   color: Colors.grey[600],
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // Star Rating
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(5, (index) {
@@ -108,10 +106,7 @@ class _EvaluationDialogState extends State<EvaluationDialog> {
                   color: _getRatingColor(_rating),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // Comment Field
               TextField(
                 controller: _commentController,
                 maxLines: 4,
@@ -135,10 +130,7 @@ class _EvaluationDialogState extends State<EvaluationDialog> {
                   contentPadding: const EdgeInsets.all(16),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // Buttons
               Row(
                 children: [
                   Expanded(
@@ -214,18 +206,34 @@ class _EvaluationDialogState extends State<EvaluationDialog> {
     setState(() => _isSubmitting = true);
 
     try {
-      await widget.onSubmit(_rating, _commentController.text.trim());
-      // Close dialog first, then the callback will show its own snackbar
-      if (mounted) {
-        Get.back();
-      }
-    } catch (e) {
-      // If there's an error, reset the loading state and close dialog
+      // Call the onSubmit callback and wait for error string (null if success)
+      final String? error =
+          await widget.onSubmit(_rating, _commentController.text.trim());
+
       if (mounted) {
         setState(() => _isSubmitting = false);
-        Get.back();
+
+        if (error == null) {
+          Get.back(); // Close dialog if success
+          Get.snackbar(
+            'Success',
+            'Your evaluation has been submitted!',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green[600],
+            colorText: Colors.white,
+          );
+        } else {
+          Get.snackbar(
+            'Error',
+            error,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red[600],
+            colorText: Colors.white,
+          );
+        }
       }
-      // Show error snackbar
+    } catch (e) {
+      if (mounted) setState(() => _isSubmitting = false);
       Get.snackbar(
         'Error',
         'Failed to submit evaluation: ${e.toString()}',
@@ -251,19 +259,47 @@ class _EvaluationDialogState extends State<EvaluationDialog> {
   }
 }
 
-// Helper function to show the dialog
+// Helper function to show evaluation dialog only if not evaluated before
 Future<void> showEvaluationDialog({
   required String tripId,
   required String travelerId,
   required String travelerName,
-  required Function(double rating, String comment) onSubmit,
-}) {
-  return Get.dialog(
+  required String evaluatorId,
+  required String evaluatorName,
+}) async {
+  bool alreadyEvaluated = await EvaluationService().hasUserEvaluated(
+    tripId: tripId,
+    evaluatorId: evaluatorId,
+  );
+
+  if (alreadyEvaluated) {
+    Get.snackbar(
+      'Info',
+      'You have already rated this trip',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+    return;
+  }
+
+  Get.dialog(
     EvaluationDialog(
       tripId: tripId,
       travelerId: travelerId,
       travelerName: travelerName,
-      onSubmit: onSubmit,
+      evaluatorId: evaluatorId,
+      evaluatorName: evaluatorName,
+      onSubmit: (rating, comment) async {
+        return await EvaluationService().createEvaluation(
+          tripId: tripId,
+          evaluatorId: evaluatorId,
+          evaluatorName: evaluatorName,
+          evaluatorRole: 'companion',
+          targetId: travelerId,
+          targetName: travelerName,
+          rating: rating,
+          comment: comment,
+        );
+      },
     ),
     barrierDismissible: false,
   );

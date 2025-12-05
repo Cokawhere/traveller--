@@ -102,7 +102,7 @@ class HomeScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  IconData(iconCode, fontFamily: 'MaterialIcons'),
+                  iconCode,
                   color: Colors.white,
                   size: 32,
                 ),
@@ -175,7 +175,7 @@ class HomeScreen extends StatelessWidget {
         _buildInfoCard(
           'Role',
           controller.getRoleDisplayName(user.role),
-          IconData(iconCode, fontFamily: 'MaterialIcons'),
+          iconCode,
         ),
         const SizedBox(height: 12),
         _buildInfoCard(
@@ -329,7 +329,7 @@ class HomeScreen extends StatelessWidget {
                   radius: 35,
                   backgroundColor: Colors.white.withOpacity(0.3),
                   child: Icon(
-                    IconData(iconCode, fontFamily: 'MaterialIcons'),
+                    iconCode,
                     size: 35,
                     color: Colors.white,
                   ),
@@ -453,7 +453,7 @@ class HomeScreen extends StatelessWidget {
       final badge = item['badge'];
       return ListTile(
         leading: Icon(
-          IconData(item['icon'], fontFamily: 'MaterialIcons'),
+          item['icon'],
           color: Color(item['color']),
         ),
         title: Row(
