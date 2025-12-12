@@ -38,12 +38,21 @@ class AuthService {
         'role': 'admin',
       });
 
-      await userCredential.user!.updateDisplayName(name);
       return null; // Success
     } on auth.FirebaseAuthException catch (e) {
       return _handleAuthException(e);
     } catch (e) {
-      return 'An unexpected error occurred.';
+      print("Admin Registration Error: $e");
+      // Rollback: try to delete the user if they were just created
+      if (_auth.currentUser != null) {
+        try {
+          await _auth.currentUser!.delete();
+          print("Rolled back user creation due to error.");
+        } catch (deleteError) {
+          print("Failed to rollback user: $deleteError");
+        }
+      }
+      return 'Registration Error: ${e.toString()}';
     }
   }
 
@@ -89,12 +98,21 @@ class AuthService {
         'role': 'traveler',
       });
 
-      await userCredential.user!.updateDisplayName(name);
       return null;
     } on auth.FirebaseAuthException catch (e) {
       return _handleAuthException(e);
     } catch (e) {
-      return 'An unexpected error occurred.';
+      print("Traveler Registration Error: $e");
+      // Rollback
+      if (_auth.currentUser != null) {
+        try {
+          await _auth.currentUser!.delete();
+          print("Rolled back user creation due to error.");
+        } catch (deleteError) {
+          print("Failed to rollback user: $deleteError");
+        }
+      }
+      return 'Registration Error: ${e.toString()}';
     }
   }
 
@@ -135,12 +153,21 @@ class AuthService {
         'role': 'companier',
       });
 
-      await userCredential.user!.updateDisplayName(name);
       return null; // Success
     } on auth.FirebaseAuthException catch (e) {
       return _handleAuthException(e);
     } catch (e) {
-      return 'An unexpected error occurred.';
+      print("Companier Registration Error: $e");
+      // Rollback
+      if (_auth.currentUser != null) {
+        try {
+          await _auth.currentUser!.delete();
+          print("Rolled back user creation due to error.");
+        } catch (deleteError) {
+          print("Failed to rollback user: $deleteError");
+        }
+      }
+      return 'Registration Error: ${e.toString()}';
     }
   }
 
