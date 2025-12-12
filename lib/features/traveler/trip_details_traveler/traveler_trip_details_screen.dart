@@ -6,7 +6,8 @@ import 'package:traveller/enums/trip_enum.dart';
 import 'trip_details_controller.dart';
 
 class TravelerTripDetailsScreen extends StatelessWidget {
-     TravelerTripDetailsScreen({super.key});
+      // ignore: prefer_const_constructors_in_immutables
+      TravelerTripDetailsScreen({super.key});
 
   late final TripDetailsController controller;
 

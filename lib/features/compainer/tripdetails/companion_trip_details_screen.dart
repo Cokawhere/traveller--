@@ -6,7 +6,8 @@ import 'package:intl/intl.dart';
 import 'companion_trip_details_controller.dart';
 
 class CompanionTripDetailsScreen extends StatelessWidget {
-   CompanionTripDetailsScreen({super.key});
+    // ignore: prefer_const_constructors_in_immutables
+    CompanionTripDetailsScreen({super.key});
 
   late final CompanionTripDetailsController controller;
 
